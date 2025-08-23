@@ -2,9 +2,13 @@
 its plays a move on lichess.
 
 run this code:
+
   "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\chrome-debug"
+  
 or this one:
+
   "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\chrome-debug"
+  
 
 to open a debug chrome instance, then login to lichess and enable input by keyboard.
 
