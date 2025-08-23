@@ -4,16 +4,14 @@ import chess
 import chess.engine
 import keyboard
 
-STOCKFISH_PATH = "" #put your own path here
+STOCKFISH_PATH = "C:/Users/chira_mk2ov0g/OneDrive/Documents/python/stockfish/stockfish-windows-x86-64-avx2.exe"
 
 browser = pychrome.Browser(url="http://127.0.0.1:9222")
 tab = browser.list_tab()[0]
 tab.start()
 tab.Runtime.enable()
 
-user_color = input("Are you playing as white or black? ").strip().lower()
-
-def get_fen():
+def get_fen(user_color):
     res = tab.Runtime.evaluate(expression="""
     (() => {
       const el = document.querySelector("cg-board");
@@ -50,7 +48,17 @@ def get_fen():
     return board
 
 def make_move():
-    board = get_fen()
+    res = tab.Runtime.evaluate(expression="""
+    (() => {
+        const el = document.querySelector("coords");
+        if (!el) return "";
+        return el.className;
+    })()
+    """)
+    class_name = res["result"].get("value", "")
+    user_color = "white" if class_name == "ranks" else "black"
+
+    board = get_fen(user_color)
     with chess.engine.SimpleEngine.popen_uci(STOCKFISH_PATH) as engine:
         result = engine.play(board, chess.engine.Limit(time=0.1))
         move = result.move.uci()
@@ -70,6 +78,7 @@ def make_move():
     tab.Runtime.evaluate(expression=move_js)
     keyboard.press_and_release("enter")
     print("Move played:", move)
+
 
 keyboard.add_hotkey("ctrl+q", make_move)
 print("Press ctrl+q to play...")
