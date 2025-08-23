@@ -1,0 +1,76 @@
+import pychrome
+import re
+import chess
+import chess.engine
+import keyboard
+
+STOCKFISH_PATH = "C:/Users/chira_mk2ov0g/OneDrive/Documents/python/stockfish/stockfish-windows-x86-64-avx2.exe"
+
+browser = pychrome.Browser(url="http://127.0.0.1:9222")
+tab = browser.list_tab()[0]
+tab.start()
+tab.Runtime.enable()
+
+user_color = input("Are you playing as white or black? ").strip().lower()
+
+def get_fen():
+    res = tab.Runtime.evaluate(expression="""
+    (() => {
+      const el = document.querySelector("cg-board");
+      return el ? el.innerHTML : "";
+    })()
+    """)
+    board_html = res["result"].get("value", "")
+
+    piece_map = {
+        "pawn": chess.PAWN,
+        "rook": chess.ROOK,
+        "knight": chess.KNIGHT,
+        "bishop": chess.BISHOP,
+        "queen": chess.QUEEN,
+        "king": chess.KING
+    }
+
+    square_size = 61.8182
+    board = chess.Board(None)
+
+    for color, name, x, y in re.findall(r'<piece class="(white|black) (\w+)" style="transform: translate\(([\d\.]+)px, ([\d\.]+)px\);">', board_html):
+        file = int(round(float(x) / square_size))
+        rank = 7 - int(round(float(y) / square_size))
+
+        if user_color == "black":
+            file = 7 - file
+            rank = 7 - rank
+
+        square = chess.square(file, rank)
+        piece = chess.Piece(piece_map[name], color=="white")
+        board.set_piece_at(square, piece)
+
+    board.turn = chess.WHITE if user_color == "white" else chess.BLACK
+    return board
+
+def make_move():
+    board = get_fen()
+    with chess.engine.SimpleEngine.popen_uci(STOCKFISH_PATH) as engine:
+        result = engine.play(board, chess.engine.Limit(time=0.1))
+        move = result.move.uci()
+        move = chess.Move.from_uci(move)
+        move = board.san(move).replace("+", "").replace("#", "")
+    move_js = f"""
+    (() => {{
+        const input = document.querySelector("div.keyboard-move input.ready");
+        if(input) {{
+            input.focus();
+            input.value = "{move}";
+            input.dispatchEvent(new Event('input', {{ bubbles: true }}));
+            input.dispatchEvent(new KeyboardEvent('keydown', {{key: "Enter"}}));
+        }}
+    }})();
+    """
+    tab.Runtime.evaluate(expression=move_js)
+    keyboard.press_and_release("enter")
+    print("Move played:", move)
+
+keyboard.add_hotkey("ctrl+q", make_move)
+print("Press ctrl+q to play...")
+keyboard.wait()
