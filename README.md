@@ -12,7 +12,7 @@ or this one:
 
 to open a debug chrome instance, then login to lichess and enable input by keyboard.
 
-Then run the code, input which player you are and press ctrl+q when you want it to play a move.
-(If playing against a player it does not work on the first move).
+Then run the code and press ctrl+q when you want it to play a move.
+(If playing against a player it will not work on the first move).
 
 
