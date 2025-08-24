@@ -1,4 +1,4 @@
-#LICHESS_BOT
+# Instructions
 
 run this code:
 
