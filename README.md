@@ -1,5 +1,7 @@
 # Instructions
 
+Note: These cannot castle or promote, but if that is required you can try the expermental bots.
+
 run this code:
 
   "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\chrome-debug"
