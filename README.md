@@ -1,7 +1,5 @@
 # Instructions
 
-Note: These cannot castle or promote, but if that is required you can try the expermental bots.
-
 run this code:
 
   "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\chrome-debug"
@@ -13,7 +11,7 @@ or this one:
 
 to open a debug chrome instance.
 
-# liches_bot 1
+# liches_bot 1(Not recommended)
 
 Login to lichess and enable input by keyboard, then run the code and press ctrl+q when you want it to play a move.
 
