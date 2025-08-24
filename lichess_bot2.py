@@ -4,6 +4,7 @@ import chess
 import chess.engine
 import keyboard
 import pyautogui
+import json
 
 STOCKFISH_PATH = ""
 
@@ -36,41 +37,30 @@ def set_bottom_right():
     bottom_right = pyautogui.position()
     print("Bottom right set:", bottom_right)
 
-def get_fen(user_color):
+def get_board_from_moves():
     res = tab.Runtime.evaluate(expression="""
     (() => {
-      const el = document.querySelector("cg-board");
-      return el ? el.innerHTML : "";
+      const list = [...document.querySelectorAll("kwdb")].map(e => e.textContent.trim());
+      return JSON.stringify(list);
     })()
     """)
-    board_html = res["result"].get("value", "")
-
-    piece_map = {
-        "pawn": chess.PAWN,
-        "rook": chess.ROOK,
-        "knight": chess.KNIGHT,
-        "bishop": chess.BISHOP,
-        "queen": chess.QUEEN,
-        "king": chess.KING
-    }
-
-    square_size = 61.8182
-    board = chess.Board(None)
-
-    for color, name, x, y in re.findall(r'<piece class="(white|black) (\w+)" style="transform: translate\(([\d\.]+)px, ([\d\.]+)px\);">', board_html):
-        file = int(round(float(x) / square_size))
-        rank = 7 - int(round(float(y) / square_size))
-
-        if user_color == "black":
-            file = 7 - file
-            rank = 7 - rank
-
-        square = chess.square(file, rank)
-        piece = chess.Piece(piece_map[name], color=="white")
-        board.set_piece_at(square, piece)
-
-    board.turn = chess.WHITE if user_color == "white" else chess.BLACK
-    print(board)
+    moves_json = res["result"].get("value", "[]")
+    try:
+        moves = json.loads(moves_json)
+    except:
+        moves = []
+    board = chess.Board()
+    for mv in moves:
+        if not mv:
+            continue
+        try:
+            board.push_san(mv)
+        except Exception:
+            try:
+                cleaned = re.sub(r'[^\w=+#xRNBQKProm\-]', '', mv)
+                board.push_san(cleaned)
+            except Exception:
+                break
     return board
 
 def square_to_screen(file, rank, user_color):
@@ -100,36 +90,40 @@ def make_move():
         """)
         class_name = res["result"].get("value", "")
         user_color = "white" if class_name == "ranks" else "black"
-
-        board = get_fen(user_color)
-
+        board = get_board_from_moves()
         if engine is None:
             start_engine()
-
-        try:
-            result = engine.play(board, chess.engine.Limit(time=0.1))
-        except (chess.engine.EngineTerminatedError, chess.engine.EngineError, BrokenPipeError):
-            print("Engine crashed — restarting...")
-            start_engine()
-            result = engine.play(board, chess.engine.Limit(time=0.1))
-
-        move = result.move
-
-        from_file = chess.square_file(move.from_square)
-        from_rank = chess.square_rank(move.from_square)
-        to_file = chess.square_file(move.to_square)
-        to_rank = chess.square_rank(move.to_square)
-
-        from_pos = square_to_screen(from_file, from_rank, user_color)
-        to_pos = square_to_screen(to_file, to_rank, user_color)
-
-        if from_pos and to_pos:
-            pyautogui.click(from_pos)
-            pyautogui.click(to_pos)
-            print("Move played:", move.uci())
-        else:
-            print("Corners not set")
-
+        print(user_color)
+        if board.turn == (chess.WHITE if user_color=="white" else chess.BLACK):
+            try:
+                result = engine.play(board, chess.engine.Limit(time=0.1))
+            except (chess.engine.EngineTerminatedError, chess.engine.EngineError, BrokenPipeError):
+                print("Engine crashed — restarting...")
+                start_engine()
+                result = engine.play(board, chess.engine.Limit(time=0.1))
+            move = result.move
+            from_file = chess.square_file(move.from_square)
+            from_rank = chess.square_rank(move.from_square)
+            to_file = chess.square_file(move.to_square)
+            to_rank = chess.square_rank(move.to_square)
+            from_pos = square_to_screen(from_file, from_rank, user_color)
+            to_pos = square_to_screen(to_file, to_rank, user_color)
+            if from_pos and to_pos:
+                pyautogui.click(from_pos)
+                pyautogui.click(to_pos)
+                if move.promotion:
+                    px, py = to_pos
+                    if move.promotion == chess.QUEEN:
+                        pyautogui.click((px, py))
+                    elif move.promotion == chess.KNIGHT:
+                        pyautogui.click((px, py + (40 if user_color=="white" else -40)))
+                    elif move.promotion == chess.ROOK:
+                        pyautogui.click((px, py + (80 if user_color=="white" else -80)))
+                    elif move.promotion == chess.BISHOP:
+                        pyautogui.click((px, py + (120 if user_color=="white" else -120)))
+                print("Move played:", move.uci())
+            else:
+                print("Corners not set")
     except Exception as e:
         print("Unable to make move:", e)
 
