@@ -5,7 +5,6 @@ import chess.engine
 import keyboard
 import pyautogui
 import time
-import subprocess
 import json
 
 STOCKFISH_PATH = ""
