@@ -20,3 +20,9 @@ Login to lichess and enable input by keyboard, then run the code and press ctrl+
 Open lichess, then run the code, next start a game.
 Hover your mouse over the top left corner of the board and press ctrl+1 and hover your mouse over the bottom right corner of the board and press ctrl+2.
 To play a move press ctrl+q
+
+# liches_bot 3
+
+Open lichess, then run the code, next start a game.
+Hover your mouse over the top left corner of the board and press ctrl+1 and hover your mouse over the bottom right corner of the board and press ctrl+2.
+Then press ctrl+3 to start the bot
