@@ -5,7 +5,7 @@ import chess.engine
 import keyboard
 import pyautogui
 
-STOCKFISH_PATH = "C:/Users/chira_mk2ov0g/OneDrive/Documents/python/stockfish/stockfish-windows-x86-64-avx2.exe"
+STOCKFISH_PATH = ""
 
 browser = pychrome.Browser(url="http://127.0.0.1:9222")
 tab = browser.list_tab()[0]
